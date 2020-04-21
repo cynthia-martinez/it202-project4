@@ -30,7 +30,7 @@
     <header class="mdc-top-app-bar">
       <div class="mdc-top-app-bar__row">
         <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
-          <span class="mdc-top-app-bar__title">Covid-19 Visualizer</span>
+          <span class="mdc-top-app-bar__title">Covid-19 Data Visualizer</span>
         </section>
         <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
           <button class="material-icons mdc-top-app-bar__action-item mdc-icon-button" aria-label="search">search</button>
@@ -45,7 +45,16 @@
     <main class="mdc-top-app-bar--fixed-adjust">
 
       <div class="view" id="search">
-        Search
+        <h1>Search</h1>
+        <input list="countries" name="country" id="user-input">
+            <datalist id="countries">
+            </datalist>
+            <button class="mdc-button mdc-button--unelevated" id="add">  <span class="mdc-button__ripple"></span> Add Country </button>
+        <div id="added-countries">                             
+        </div>
+        <button class="mdc-button mdc-button--unelevated" id="chart">  <span class="mdc-button__ripple"></span> Chart Countries </button>
+        
+        
       </div>
       <div class="view" id="table">
         Table
@@ -57,30 +66,71 @@
     </main>
 
 
-  <script>
+    <script>
 
-    mdc.topAppBar.MDCTopAppBar.attachTo(document.querySelector('header.mdc-top-app-bar'));
-    
-    let nav_icons = document.querySelectorAll(".mdc-top-app-bar__action-item")
+      mdc.topAppBar.MDCTopAppBar.attachTo(document.querySelector('header.mdc-top-app-bar'));
+      mdc.ripple.MDCRipple.attachTo(document.querySelector('button#add')); 
+      mdc.ripple.MDCRipple.attachTo(document.querySelector('button#chart')); 
 
-    
-    const hide = () => {
-      document.querySelectorAll(".view").forEach(item => {
-        item.style.display = "none";
+      const nav_icons = document.querySelectorAll(".mdc-top-app-bar__action-item");      
+      const api_endpoint = 'https://pomber.github.io/covid19/timeseries.json';
+      const country_list = document.querySelector("datalist#countries");
+      const add_btn = document.querySelector('button#add'); 
+      const chart_btn = document.querySelector('button#chart'); 
+      let added_countries = [];
+      
+      
+      add_btn.addEventListener('click', () => {
+        let input = document.querySelector('#user-input')
+        let country = input.value;
+        input.value = '';       
+        added_countries.push(country);
+        p = document.createElement('p');
+        p.textContent = country;
+        document.querySelector("div#added-countries").appendChild(p);
+        
+        console.log(added_countries);
+       
+      } );
+      
+          
+      
+      
+      // first fetch to get countries and add to datalist
+      fetch(api_endpoint)
+        .then(response => response.json())
+        .then(data => {
+           const keys = Object.keys(data);
+           keys.forEach(k => {
+             let node = document.createElement('option');
+             node.setAttribute('value', k );
+             country_list.appendChild(node);   
+           });
+        });
+      
+
+
+      const hide = () => {
+        document.querySelectorAll(".view").forEach(item => {
+          item.style.display = "none";
+        });
+
+      };  
+
+
+      nav_icons.forEach(item => {
+        item.addEventListener("click", event => {
+          hide();
+          let id = item.getAttribute('aria-label');
+          let page = document.querySelector('#'+id);
+          page.style.display = "block";
+        })
       });
       
-    };
+      
+      
+      
 
-    
-    nav_icons.forEach(item => {
-      item.addEventListener("click", event => {
-        hide();
-        let id = item.getAttribute('aria-label');
-        let page = document.querySelector('#'+id);
-        page.style.display = "block";
-      })
-    });
-    
     
     </script>
   </body>

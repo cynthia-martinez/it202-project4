@@ -17,6 +17,14 @@
       display:none;
       
     }
+    
+    .template{
+      display: none;
+    }
+    
+    .mdc-data-table__header-cell{
+      font-weight:bold;    
+    }
 
     body {margin: 0;}
     main {margin-left: 8px;}
@@ -57,13 +65,26 @@
         
       </div>
       <div class="view" id="table">
-        Table
+        <div class="mdc-data-table">
+          <table class="mdc-data-table__table" aria-label="Dessert calories">
+            <thead>
+              <tr class="mdc-data-table__header-row">
+                <th class="mdc-data-table__header-cell keep" role="columnheader" scope="col"> Date </th>               
+              </tr>
+            </thead>
+            <tbody class="mdc-data-table__content">
+              <tr class="mdc-data-table__row template">
+                <td class="mdc-data-table__cell mdc-data-table__cell--numeric template">Frozen yogurt</td>
+              </tr>             
+            </tbody>
+          </table>
+        </div>
       </div>
       <div class="view" id="chart">
         Chart
       </div>
 
-    </main>
+    </main> 
 
 
     <script>
@@ -79,6 +100,63 @@
       const chart_btn = document.querySelector('button#chart'); 
       let added_countries = [];
       
+      const hide = () => {
+        document.querySelectorAll(".view").forEach(item => {
+          item.style.display = "none";
+        });
+
+      };  
+      
+      
+      // add country names to table
+      const add_names = (arr) => {
+        arr.forEach(c =>{
+          let header = document.querySelector("th").cloneNode(true);
+          header.classList.remove("keep");
+          header.textContent = c;
+          document.querySelector(".mdc-data-table__header-row").appendChild(header);
+          
+        });
+      };
+      
+      // add dates with date as ID
+      const add_dates = () => {
+         fetch(api_endpoint)
+        .then(response => response.json())
+        .then(data => {
+           let c_data = data[added_countries[0]];
+           c_data.forEach(info =>{
+             let date = info['date'];
+             let row = document.querySelector("tr.template").cloneNode(true);
+             row.classList.remove("template");
+             row.id = 'd'+date; 
+             row.childNodes[1].textContent = date
+             row.childNodes[1].classList.remove('template');
+             document.querySelector("tbody").appendChild(row);
+           });
+        });
+        
+      };
+      
+      const add_cases = () => {
+        fetch(api_endpoint)
+        .then(response => response.json())
+        .then(data => {            
+             added_countries.forEach(c => {
+               data[c].forEach(info => {
+                 let cell = document.querySelector('td.template').cloneNode(true);
+                 cell.classList.remove('template');
+                 date = info['date'];
+                 cases = info['confirmed'];
+                 cell.textContent = cases;
+                 document.querySelector("#d"+date).appendChild(cell);
+               });
+             } );
+           }); 
+        
+      };
+      
+      
       
       add_btn.addEventListener('click', () => {
         let input = document.querySelector('#user-input')
@@ -87,11 +165,36 @@
         added_countries.push(country);
         p = document.createElement('p');
         p.textContent = country;
-        document.querySelector("div#added-countries").appendChild(p);
-        
-        console.log(added_countries);
-       
+        document.querySelector("div#added-countries").appendChild(p);      
       } );
+      
+      chart_btn.addEventListener('click', () => {
+        // clear chart table
+        document.querySelectorAll('th').forEach(n =>{
+          if(n.classList.contains('keep') == false){
+            n.remove()
+          }
+        });
+        document.querySelectorAll('tbody tr').forEach(n =>{
+          if(n.classList.contains('template') == false){
+            n.remove()
+          }
+        });
+        //add country names
+        add_names(added_countries);
+        //add dates with proper id
+        add_dates();
+        //add confirmed 
+        add_cases();
+        
+        //add google chart      
+        //show table page
+        hide();
+        let page = document.querySelector('#table');
+        page.style.display = "block";
+        
+        
+      });
       
           
       
@@ -110,12 +213,6 @@
       
 
 
-      const hide = () => {
-        document.querySelectorAll(".view").forEach(item => {
-          item.style.display = "none";
-        });
-
-      };  
 
 
       nav_icons.forEach(item => {
